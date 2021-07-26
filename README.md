@@ -1,2 +1,3 @@
-# carbon
-Extendable HTTP proxy
+# Carbon Proxy
+
+Extendable web proxy

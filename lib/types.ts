@@ -1,14 +1,10 @@
-import * as http from 'http';
+import type { IncomingMessage, ServerResponse } from 'http';
 
-export interface CarbonPluginFilter {
-	url: string;
-}
-
-export interface CarbonPlugin {
+export interface CarbonProxyPlugin {
 	slug: string;
-	filter: CarbonPluginFilter;
-	handler: (
-		request: http.IncomingMessage,
-		response: http.ServerResponse,
-	) => void;
+	filter: {
+		method: string;
+		url: string;
+	};
+	handler: (request: IncomingMessage, response: ServerResponse) => void;
 }

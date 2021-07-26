@@ -1,0 +1,11 @@
+{
+  "verbose": true,
+  "ignoreRoot": [],
+  "watch": [
+    "lib/"
+  ],
+  "execMap": {
+    "ts": "node -r ts-node/register"
+  },
+  "ext": "js,json,ts"
+}

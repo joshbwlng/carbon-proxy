@@ -31,7 +31,7 @@ export function init(
 			const plugins: CarbonProxyPlugin[] = [];
 			for (const pluginName of pluginNames) {
 				const Plugin = require(pluginName);
-				plugins.push(new Plugin[Object.keys(Plugin)[0]]());
+				plugins.push(new Plugin[Object.keys(Plugin)[0]](context));
 			}
 			run(context, plugins);
 		});

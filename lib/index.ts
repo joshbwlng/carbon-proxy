@@ -4,7 +4,7 @@ import httpProxy from 'http-proxy';
 import { init } from './bootstrap';
 import { environment } from './environment';
 import { CarbonProxyContext, CarbonProxyPlugin } from './types';
-export { CarbonProxyPlugin };
+export { CarbonProxyContext, CarbonProxyPlugin };
 
 init(
 	environment.plugins,

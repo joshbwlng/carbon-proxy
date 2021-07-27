@@ -1,21 +1,39 @@
 import npm from 'npm';
+import { v4 as uuid } from 'uuid';
+import { CarbonProxyLogger } from './logger';
+import type { CarbonProxyContext, CarbonProxyPlugin } from './types';
 
-export function init(plugins: string[], run: () => void): void {
+const contextId = `CARBON-PROXY-${uuid().split('-')[0]}`;
+const context: CarbonProxyContext = {
+	id: contextId,
+	logger: new CarbonProxyLogger(contextId),
+};
+
+export function init(
+	pluginNames: string[],
+	run: (context: CarbonProxyContext, plugins: CarbonProxyPlugin[]) => void,
+): void {
+	context.logger.info('Loading npm');
 	npm.load((loadError, _data) => {
 		if (loadError) {
 			throw loadError;
 		}
 
-		npm.commands.install(plugins, (installError, _result) => {
+		context.logger.info('Installing plugins', {
+			plugins: pluginNames,
+		});
+		npm.commands.install(pluginNames, (installError, _result) => {
 			if (installError) {
 				throw installError;
 			}
 
-			run();
-		});
-
-		npm.on('log', (message: string) => {
-			console.log(message);
+			// TODO: Add slug collision checks, etc.
+			const plugins: CarbonProxyPlugin[] = [];
+			for (const pluginName of pluginNames) {
+				const Plugin = require(pluginName);
+				plugins.push(new Plugin[Object.keys(Plugin)[0]]());
+			}
+			run(context, plugins);
 		});
 	});
 }

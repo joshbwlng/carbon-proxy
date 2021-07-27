@@ -1,28 +1,33 @@
 import express from 'express';
-import * as http from 'http';
+import type { IncomingMessage, ServerResponse } from 'http';
 import httpProxy from 'http-proxy';
 import { init } from './bootstrap';
-export * from './types';
+import { environment } from './environment';
+import { CarbonProxyContext, CarbonProxyPlugin } from './types';
+export { CarbonProxyPlugin };
 
-const PROXY_PORT = 3000;
-const plugins = ['static-eval'];
+init(
+	environment.plugins,
+	(context: CarbonProxyContext, plugins: CarbonProxyPlugin[]) => {
+		const proxy = httpProxy.createProxyServer({});
+		const app = express();
 
-init(plugins, () => {
-	const proxy = httpProxy.createProxyServer({});
-	const app = express();
-
-	// TODO: Add HTTPS support
-	app.get(
-		'*',
-		(request: http.IncomingMessage, response: http.ServerResponse) => {
-			console.log('Request', request.method, request.url);
+		// TODO: Add HTTPS support
+		app.get('*', (request: IncomingMessage, response: ServerResponse) => {
+			context.logger.info('Request', {
+				method: request.method,
+				url: request.url,
+			});
+			for (const plugin of plugins) {
+				plugin.handler(request, response);
+			}
 			proxy.web(request, response, {
 				target: request.url,
 			});
-		},
-	);
+		});
 
-	app.listen(PROXY_PORT, () => {
-		console.log('Server listening on port:', PROXY_PORT);
-	});
-});
+		app.listen(environment.port, () => {
+			context.logger.info(`Proxy server started on port ${environment.port}`);
+		});
+	},
+);

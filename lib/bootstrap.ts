@@ -1,3 +1,4 @@
+import { execSync } from 'child_process';
 import npm from 'npm';
 import { v4 as uuid } from 'uuid';
 import { CarbonProxyLogger } from './logger';
@@ -19,21 +20,16 @@ export function init(
 			throw loadError;
 		}
 
+		// TODO: Add slug collision checks, etc.
 		context.logger.info('Installing plugins', {
 			plugins: pluginNames,
 		});
-		npm.commands.install(pluginNames, (installError, _result) => {
-			if (installError) {
-				throw installError;
-			}
-
-			// TODO: Add slug collision checks, etc.
-			const plugins: CarbonProxyPlugin[] = [];
-			for (const pluginName of pluginNames) {
-				const Plugin = require(pluginName);
-				plugins.push(new Plugin[Object.keys(Plugin)[0]](context));
-			}
-			run(context, plugins);
-		});
+		const plugins: CarbonProxyPlugin[] = [];
+		for (const pluginName of pluginNames) {
+			execSync(`npm ls ${pluginName} || npm install --no-save ${pluginName}`);
+			const Plugin = require(pluginName);
+			plugins.push(new Plugin[Object.keys(Plugin)[0]](context));
+		}
+		run(context, plugins);
 	});
 }
